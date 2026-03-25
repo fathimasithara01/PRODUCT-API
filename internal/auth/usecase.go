@@ -9,21 +9,21 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type Usecase interface {
+type AuthUsecase interface {
 	SignUp(user *User) error
 	Login(email, password string) (string, error)
 }
-type usecase struct {
-	repo Repository
+type authUsecase struct {
+	repo UserRepository
 }
 
-func NewUsecase(repo Repository) Usecase {
-	return &usecase{repo}
+func NewUsecase(repo UserRepository) AuthUsecase {
+	return &authUsecase{repo}
 }
 
-func (u *usecase) SignUp(user *User) error {
-	if user.Email == " " || user.Password == "" {
-		return errors.New("email and password are required")
+func (u *authUsecase) SignUp(user *User) error {
+	if user.Name == "" || user.Email == " " || user.Password == "" {
+		return errors.New("all fields are required")
 	}
 
 	existing, _ := u.repo.GetByEmail(user.Email)
@@ -41,7 +41,7 @@ func (u *usecase) SignUp(user *User) error {
 	return u.repo.Create(user)
 }
 
-func (u *usecase) Login(email, password string) (string, error) {
+func (u *authUsecase) Login(email, password string) (string, error) {
 	user, err := u.repo.GetByEmail(email)
 	if err != nil {
 		return "", errors.New("invalid credentials")

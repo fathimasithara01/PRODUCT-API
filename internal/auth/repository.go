@@ -1,26 +1,36 @@
 package auth
 
-import "gorm.io/gorm"
+import (
+	"errors"
 
-type Repository interface {
+	"gorm.io/gorm"
+)
+
+type UserRepository interface {
 	Create(user *User) error
 	GetByEmail(email string) (*User, error)
 }
 
-type repo struct {
+type userRepo struct {
 	db *gorm.DB
 }
 
-func NewRepository(db *gorm.DB) Repository {
-	return &repo{db}
+func NewRepository(db *gorm.DB) UserRepository {
+	return &userRepo{db}
 }
 
-func (r *repo) Create(user *User) error {
+func (r *userRepo) Create(user *User) error {
 	return r.db.Create(user).Error
 }
 
-func (r *repo) GetByEmail(email string) (*User, error) {
+func (r *userRepo) GetByEmail(email string) (*User, error) {
 	var user User
-	err := r.db.Find("email = ?", email).First(&user).Error
+	err := r.db.Where("email = ?", email).First(&user).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return nil, err
+	}
 	return &user, err
 }

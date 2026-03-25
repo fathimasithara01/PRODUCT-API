@@ -11,7 +11,7 @@ type ProductRepository interface {
 	Create(product *model.Product) error
 	GetAll() ([]model.Product, error)
 	GetByID(id uint) (*model.Product, error)
-	Update(product *model.Product) error
+	Update(product *model.Product) (*model.Product, error)
 	Delete(id uint) error
 }
 
@@ -49,20 +49,20 @@ func (r *productRepo) GetByID(id uint) (*model.Product, error) {
 	return &product, nil
 }
 
-func (r *productRepo) Update(product *model.Product) error {
+func (r *productRepo) Update(product *model.Product) (*model.Product, error) {
 	result := r.db.Model(&model.Product{}).
 		Where("id = ?", product.ID).
 		Updates(product)
 
 	if result.Error != nil {
-		return result.Error
+		return nil, result.Error
 	}
 
 	if result.RowsAffected == 0 {
-		return errors.New("product not found")
+		return nil, errors.New("product not found")
 	}
 
-	return nil
+	return product, nil
 }
 
 func (r *productRepo) Delete(id uint) error {

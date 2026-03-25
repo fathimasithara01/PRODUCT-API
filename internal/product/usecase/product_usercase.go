@@ -5,13 +5,14 @@ import (
 
 	"github.com/fathima-sithara/PRODUCT-API/internal/product/model"
 	"github.com/fathima-sithara/PRODUCT-API/internal/product/repository"
+	"gorm.io/gorm"
 )
 
 type ProductUsecase interface {
 	Create(product *model.Product) error
 	GetAll() ([]model.Product, error)
 	GetByID(id uint) (*model.Product, error)
-	Update(product *model.Product) error
+	Update(product *model.Product) (*model.Product, error)
 	Delete(id uint) error
 }
 
@@ -30,6 +31,9 @@ func (u *productUsecase) Create(product *model.Product) error {
 	if product.Price <= 0 {
 		return errors.New("invalid product price")
 	}
+	if product.Stock < 0 {
+		return errors.New("stock cannot be negative")
+	}
 
 	return u.repo.Create(product)
 }
@@ -46,15 +50,26 @@ func (u *productUsecase) GetByID(id uint) (*model.Product, error) {
 	return u.repo.GetByID(id)
 }
 
-func (u *productUsecase) Update(product *model.Product) error {
+func (u *productUsecase) Update(product *model.Product) (*model.Product, error) {
 	if product.ID == 0 {
-		return errors.New("invalid product id")
+		return nil, errors.New("invalid product id")
 	}
 	if product.Price <= 0 {
-		return errors.New("invalid product price")
+		return nil, errors.New("invalid product price")
+	}
+	if product.Stock < 0 {
+		return nil, errors.New("stock cannot be negative")
 	}
 
-	return u.repo.Update(product)
+	updatedProduct, err := u.repo.Update(product)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, gorm.ErrRecordNotFound
+		}
+		return nil, err
+	}
+
+	return updatedProduct, nil
 }
 
 func (u *productUsecase) Delete(id uint) error {

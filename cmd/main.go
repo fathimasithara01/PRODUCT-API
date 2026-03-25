@@ -4,7 +4,9 @@ import (
 	"os"
 
 	"github.com/fathima-sithara/PRODUCT-API/internal/auth"
-	"github.com/fathima-sithara/PRODUCT-API/internal/cart"
+	"github.com/fathima-sithara/PRODUCT-API/internal/cart/cart_handler"
+	"github.com/fathima-sithara/PRODUCT-API/internal/cart/cart_repository"
+	"github.com/fathima-sithara/PRODUCT-API/internal/cart/cart_usecase"
 	"github.com/fathima-sithara/PRODUCT-API/internal/config"
 	"github.com/fathima-sithara/PRODUCT-API/internal/middleware"
 	"github.com/fathima-sithara/PRODUCT-API/internal/product/handler"
@@ -46,14 +48,17 @@ func main() {
 		api.DELETE("/products/:id", productHandler.DeleteProduct)
 	}
 
-	cartRepo := cart.NewRepository(db)
-	cartUsecase := cart.NewUsecase(cartRepo)
-	cartHandler := cart.NewHandler(cartUsecase)
+	cartRepo := cart_repository.NewCartRepo(db)
+	cartUsecase := cart_usecase.NewCartUsecase(cartRepo)
+	cartHandler := cart_handler.NewCartHandler(cartUsecase)
 
 	api.Use(middleware.AuthMiddleware())
 	{
-		api.POST("/cart/:product_id", cartHandler.AddToCart)
-		api.GET("/cart", cartHandler.GetCart)
+		api.POST("/:user_id/:product_id", cartHandler.AddToCart)
+		api.GET("/:user_id", cartHandler.GetCart)
+		api.PUT("/:cart_id", cartHandler.UpdateQuantity)
+		api.DELETE("/:cart_id", cartHandler.RemoveFromCart)
+		api.DELETE("/clear/:user_id", cartHandler.ClearCart)
 	}
 
 	port := os.Getenv("PORT")
