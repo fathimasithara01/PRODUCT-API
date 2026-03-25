@@ -9,7 +9,7 @@ import (
 	"github.com/fathima-sithara/PRODUCT-API/internal/product/handler"
 	"github.com/fathima-sithara/PRODUCT-API/internal/product/model"
 	"github.com/fathima-sithara/PRODUCT-API/internal/product/repository"
-	usecase "github.com/fathima-sithara/PRODUCT-API/internal/product/usercase"
+	"github.com/fathima-sithara/PRODUCT-API/internal/product/usecase"
 	"github.com/gin-gonic/gin"
 )
 

@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/fathima-sithara/PRODUCT-API/internal/product/model"
-	usecase "github.com/fathima-sithara/PRODUCT-API/internal/product/usercase"
+	"github.com/fathima-sithara/PRODUCT-API/internal/product/usecase"
 	"github.com/gin-gonic/gin"
 )
 
