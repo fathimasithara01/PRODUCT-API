@@ -11,6 +11,8 @@ import (
 )
 
 func main() {
+	config.LoadEnv()
+
 	db := config.ConnectDB()
 
 	db.AutoMigrate(&model.Product{})
