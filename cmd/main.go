@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/fathima-sithara/PRODUCT-API/internal/auth"
+	"github.com/fathima-sithara/PRODUCT-API/internal/cart"
 	"github.com/fathima-sithara/PRODUCT-API/internal/config"
 	"github.com/fathima-sithara/PRODUCT-API/internal/middleware"
 	"github.com/fathima-sithara/PRODUCT-API/internal/product/handler"
@@ -35,14 +36,24 @@ func main() {
 
 	api := r.Group("/api/v1")
 
-	auth := api.Group("/")
-	auth.Use(middleware.AuthMiddleware())
+	// auth := api.Group("/")
+	api.Use(middleware.AuthMiddleware())
 	{
-		auth.POST("/products", productHandler.CreateProduct)
-		auth.GET("/products", productHandler.GetAllProducts)
-		auth.GET("/products/:id", productHandler.GetProductByID)
-		auth.PUT("/products/:id", productHandler.UpdateProduct)
-		auth.DELETE("/products/:id", productHandler.DeleteProduct)
+		api.POST("/products", productHandler.CreateProduct)
+		api.GET("/products", productHandler.GetAllProducts)
+		api.GET("/products/:id", productHandler.GetProductByID)
+		api.PUT("/products/:id", productHandler.UpdateProduct)
+		api.DELETE("/products/:id", productHandler.DeleteProduct)
+	}
+
+	cartRepo := cart.NewRepository(db)
+	cartUsecase := cart.NewUsecase(cartRepo)
+	cartHandler := cart.NewHandler(cartUsecase)
+
+	api.Use(middleware.AuthMiddleware())
+	{
+		api.POST("/cart/:product_id", cartHandler.AddToCart)
+		api.GET("/cart", cartHandler.GetCart)
 	}
 
 	port := os.Getenv("PORT")
