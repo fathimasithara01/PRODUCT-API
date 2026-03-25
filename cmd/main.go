@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/fathima-sithara/PRODUCT-API/internal/config"
 	"github.com/fathima-sithara/PRODUCT-API/internal/handler"
+	"github.com/fathima-sithara/PRODUCT-API/internal/middleware"
 	"github.com/fathima-sithara/PRODUCT-API/internal/model"
 	"github.com/fathima-sithara/PRODUCT-API/internal/repository"
 	usecase "github.com/fathima-sithara/PRODUCT-API/internal/usercase"
@@ -20,11 +21,15 @@ func main() {
 
 	r := gin.Default()
 
-	r.POST("/products", handler.CreateProduct)
-	r.GET("/products", handler.GetAllProducts)
-	r.GET("/products/:id", handler.GetProductByID)
-	r.PUT("/products/:id", handler.UpdateProduct)
-	r.DELETE("/products/:id", handler.DeleteProduct)
+	auth := r.Group("/api")
+	auth.Use(middleware.AuthMiddleware())
+	{
+		auth.POST("/products", handler.CreateProduct)
+		auth.GET("/products", handler.GetAllProducts)
+		auth.GET("/products/:id", handler.GetProductByID)
+		auth.PUT("/products/:id", handler.UpdateProduct)
+		auth.DELETE("/products/:id", handler.DeleteProduct)
+	}
 
 	r.Run(":8080")
 
