@@ -17,7 +17,6 @@ func NewProductHandler(u usecase.ProductUsecase) *ProductHandler {
 	return &ProductHandler{u}
 }
 
-// POST /products
 func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	var product model.Product
 
@@ -26,8 +25,16 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 		return
 	}
 
-	err := h.usecase.Create(&product)
-	if err != nil {
+	if product.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
+		return
+	}
+	if product.Price <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid price"})
+		return
+	}
+
+	if err := h.usecase.Create(&product); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to create"})
 		return
 	}
@@ -35,32 +42,46 @@ func (h *ProductHandler) CreateProduct(c *gin.Context) {
 	c.JSON(http.StatusCreated, product)
 }
 
-// GET /products
 func (h *ProductHandler) GetAllProducts(c *gin.Context) {
-	products, _ := h.usecase.GetAll()
+	products, err := h.usecase.GetAll()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch"})
+		return
+	}
+
 	c.JSON(http.StatusOK, products)
 }
 
-// GET /products/:id
 func (h *ProductHandler) GetProductByID(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	idParam := c.Param("id")
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		return
+	}
 
 	product, err := h.usecase.GetByID(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
 		return
 	}
 
 	c.JSON(http.StatusOK, product)
 }
 
-// PUT /products/:id
 func (h *ProductHandler) UpdateProduct(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	idParam := c.Param("id")
+
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		return
+	}
 
 	product, err := h.usecase.GetByID(uint(id))
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		c.JSON(http.StatusNotFound, gin.H{"error": "product not found"})
 		return
 	}
 
@@ -69,14 +90,32 @@ func (h *ProductHandler) UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	h.usecase.Update(product)
+	if product.Price <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid price"})
+		return
+	}
+
+	if err := h.usecase.Update(product); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "update failed"})
+		return
+	}
+
 	c.JSON(http.StatusOK, product)
 }
 
-// DELETE /products/:id
 func (h *ProductHandler) DeleteProduct(c *gin.Context) {
-	id, _ := strconv.Atoi(c.Param("id"))
+	idParam := c.Param("id")
 
-	h.usecase.Delete(uint(id))
-	c.JSON(http.StatusOK, gin.H{"message": "deleted"})
+	id, err := strconv.Atoi(idParam)
+	if err != nil || id <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid product id"})
+		return
+	}
+
+	if err := h.usecase.Delete(uint(id)); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "delete failed"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "product deleted successfully"})
 }

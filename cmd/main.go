@@ -1,6 +1,8 @@
 package main
 
 import (
+	"os"
+
 	"github.com/fathima-sithara/PRODUCT-API/internal/config"
 	"github.com/fathima-sithara/PRODUCT-API/internal/handler"
 	"github.com/fathima-sithara/PRODUCT-API/internal/middleware"
@@ -17,22 +19,32 @@ func main() {
 
 	db.AutoMigrate(&model.Product{})
 
-	repo := repository.NewProductRepo(db)
-	usercase := usecase.NewProductUsecase(repo)
-	handler := handler.NewProductHandler(usercase)
+	productRepo := repository.NewProductRepo(db)
+	productUsecase := usecase.NewProductUsecase(productRepo)
+	productHandler := handler.NewProductHandler(productUsecase)
 
 	r := gin.Default()
 
-	auth := r.Group("/api")
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "API is running "})
+	})
+
+	api := r.Group("/api/v1")
+
+	auth := api.Group("/")
 	auth.Use(middleware.AuthMiddleware())
 	{
-		auth.POST("/products", handler.CreateProduct)
-		auth.GET("/products", handler.GetAllProducts)
-		auth.GET("/products/:id", handler.GetProductByID)
-		auth.PUT("/products/:id", handler.UpdateProduct)
-		auth.DELETE("/products/:id", handler.DeleteProduct)
+		auth.POST("/products", productHandler.CreateProduct)
+		auth.GET("/products", productHandler.GetAllProducts)
+		auth.GET("/products/:id", productHandler.GetProductByID)
+		auth.PUT("/products/:id", productHandler.UpdateProduct)
+		auth.DELETE("/products/:id", productHandler.DeleteProduct)
 	}
 
-	r.Run(":8080")
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
 
+	r.Run(":" + port)
 }

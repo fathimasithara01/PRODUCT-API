@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/fathima-sithara/PRODUCT-API/internal/model"
 	"gorm.io/gorm"
 )
@@ -27,20 +29,52 @@ func (r *productRepo) Create(product *model.Product) error {
 
 func (r *productRepo) GetAll() ([]model.Product, error) {
 	var products []model.Product
-	err := r.db.Find(&products).Error
-	return products, err
+	if err := r.db.Find(&products).Error; err != nil {
+		return nil, err
+	}
+	return products, nil
 }
 
 func (r *productRepo) GetByID(id uint) (*model.Product, error) {
 	var product model.Product
+
 	err := r.db.First(&product, id).Error
-	return &product, err
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, errors.New("product not found")
+		}
+		return nil, err
+	}
+
+	return &product, nil
 }
 
 func (r *productRepo) Update(product *model.Product) error {
-	return r.db.Save(product).Error
+	result := r.db.Model(&model.Product{}).
+		Where("id = ?", product.ID).
+		Updates(product)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return errors.New("product not found")
+	}
+
+	return nil
 }
 
 func (r *productRepo) Delete(id uint) error {
-	return r.db.Delete(&model.Product{}, id).Error
+	result := r.db.Delete(&model.Product{}, id)
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return errors.New("product not found")
+	}
+
+	return nil
 }
