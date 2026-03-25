@@ -1,10 +1,10 @@
-package usecase
+package usercase
 
 import (
 	"errors"
 
-	"github.com/fathima-sithara/PRODUCT-API/internal/model"
-	"github.com/fathima-sithara/PRODUCT-API/internal/repository"
+	"github.com/fathima-sithara/PRODUCT-API/internal/product/model"
+	"github.com/fathima-sithara/PRODUCT-API/internal/product/repository"
 )
 
 type ProductUsecase interface {

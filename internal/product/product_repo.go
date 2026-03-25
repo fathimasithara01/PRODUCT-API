@@ -1,17 +1,17 @@
-package repository
+package product
 
 import (
 	"errors"
 
-	"github.com/fathima-sithara/PRODUCT-API/internal/model"
+	"github.com/fathima-sithara/PRODUCT-API/internal/product/model"
 	"gorm.io/gorm"
 )
 
 type ProductRepository interface {
-	Create(product *model.Product) error
-	GetAll() ([]model.Product, error)
-	GetByID(id uint) (*model.Product, error)
-	Update(product *model.Product) error
+	Create(product Product) error
+	GetAll() ([]Product, error)
+	GetByID(id uint) (Product, error)
+	Update(product Product) error
 	Delete(id uint) error
 }
 
@@ -23,19 +23,19 @@ func NewProductRepo(db *gorm.DB) ProductRepository {
 	return &productRepo{db}
 }
 
-func (r *productRepo) Create(product *model.Product) error {
+func (r *productRepo) Create(product Product) error {
 	return r.db.Create(product).Error
 }
 
-func (r *productRepo) GetAll() ([]model.Product, error) {
-	var products []model.Product
+func (r *productRepo) GetAll() ([]Product, error) {
+	var products []Product
 	if err := r.db.Find(&products).Error; err != nil {
 		return nil, err
 	}
 	return products, nil
 }
 
-func (r *productRepo) GetByID(id uint) (*model.Product, error) {
+func (r *productRepo) GetByID(id uint) (*Product, error) {
 	var product model.Product
 
 	err := r.db.First(&product, id).Error

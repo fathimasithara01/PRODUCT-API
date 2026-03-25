@@ -1,11 +1,10 @@
-package handler
+package product
 
 import (
 	"net/http"
 	"strconv"
 
-	"github.com/fathima-sithara/PRODUCT-API/internal/model"
-	usecase "github.com/fathima-sithara/PRODUCT-API/internal/usercase"
+	"github.com/fathima-sithara/PRODUCT-API/internal/product/model"
 	"github.com/gin-gonic/gin"
 )
 

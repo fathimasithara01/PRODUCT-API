@@ -3,12 +3,13 @@ package main
 import (
 	"os"
 
+	"github.com/fathima-sithara/PRODUCT-API/internal/auth"
 	"github.com/fathima-sithara/PRODUCT-API/internal/config"
-	"github.com/fathima-sithara/PRODUCT-API/internal/handler"
 	"github.com/fathima-sithara/PRODUCT-API/internal/middleware"
-	"github.com/fathima-sithara/PRODUCT-API/internal/model"
-	"github.com/fathima-sithara/PRODUCT-API/internal/repository"
-	usecase "github.com/fathima-sithara/PRODUCT-API/internal/usercase"
+	"github.com/fathima-sithara/PRODUCT-API/internal/product/handler"
+	"github.com/fathima-sithara/PRODUCT-API/internal/product/model"
+	"github.com/fathima-sithara/PRODUCT-API/internal/product/repository"
+	usecase "github.com/fathima-sithara/PRODUCT-API/internal/product/usercase"
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,15 +20,18 @@ func main() {
 
 	db.AutoMigrate(&model.Product{})
 
+	authRepo := auth.NewRepository(db)
+	authUsecase := auth.NewUsecase(authRepo)
+	authHandler := auth.NewHandler(authUsecase)
+
 	productRepo := repository.NewProductRepo(db)
 	productUsecase := usecase.NewProductUsecase(productRepo)
 	productHandler := handler.NewProductHandler(productUsecase)
 
 	r := gin.Default()
 
-	r.GET("/", func(c *gin.Context) {
-		c.JSON(200, gin.H{"message": "API is running "})
-	})
+	r.POST("/signup", authHandler.Signup)
+	r.POST("/login", authHandler.Login)
 
 	api := r.Group("/api/v1")
 
